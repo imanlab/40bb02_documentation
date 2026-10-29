@@ -1,0 +1,246 @@
+# Robot Setup (UR5)
+
+> **Documentation status:** Lab working notes. Check the robot's actual configuration and
+> keep the work area clear before enabling motion. This page is intended for the
+> lab's internally shared documentation.
+
+## UR5 workstation login
+
+| Field | Value |
+| --- | --- |
+| Username | `ur5` |
+| Password | `uos40bb02` |
+
+The ROS workspaces are sourced automatically by the workstation's `~/.bashrc`,
+according to the current lab setup. If a command is not found, check that the
+correct workstation account and ROS environment are active.
+
+### ROS workspace source directory
+
+The ROS packages and lab scripts on the UR5 workstation are located at:
+
+```text
+~/sam/iros2025_ws/src/
+```
+
+To browse them from a terminal:
+
+```bash
+cd ~/sam/iros2025_ws/src/
+ls
+```
+
+The required ROS workspaces are sourced automatically through `~/.bashrc`; you
+do not need to change into this directory before using `roslaunch` or `rosrun`.
+
+### Operating system and kernel
+
+Boot the UR5 workstation into **Ubuntu 20.04**. Unlike the Franka workstation,
+the UR5 setup described here **does not require a real-time (PREEMPT_RT)
+kernel**. You do not need to select a real-time kernel or perform the Franka
+real-time-kernel checks before following this UR5 startup procedure.
+
+## Startup using the teach pendant
+
+1. Turn on the Robot using the teach pendant.
+The robot takes a few minutes to power on.
+
+![INSERT IMAGE OF TURNING ON ROBOT](images/20250603_092406.jpg)
+
+You will be greeted by home screen with a prompt to initialise the robot.
+
+![INSERT IMAGE OF HOME SCREEN WITH GO TO INITIALISATION PROMPT](images/20250603_092614.jpg)
+   
+2. Press *Go to initialisation screen* on the teach pendant.
+
+![INSERT IMAGE OF PRESSING GO TO INITIALISATION SCREEN](images/20250603_092633.jpg)
+
+This will take you too the initialise robot screen.
+
+![INSERT IMAGE OF INITIALISE ROBOT SCREEN 1](images/20250603_092658.jpg)
+
+3. Set the *Active Payload* to 0. This affects gravity compensation mode on the robot outside of external control.
+
+![INSERT IMAGE OF PRESSING ACTIVE PAYLOAD VALUE 1](images/20250603_092701.jpg)
+![INSERT IMAGE OF PRESSING ACTIVE PAYLOAD VALUE 2](images/20250603_092707.jpg)
+![INSERT IMAGE OF PRESSING ACTIVE PAYLOAD VALUE 3](images/20250603_092711.jpg)
+
+![INSERT IMAGE OF INITIALISE ROBOT SCREEN 2](images/20250603_092716.jpg)
+
+4. Press *ON*. This will power on the Robot.
+
+![INSERT IMAGE OF PRESSING ON](images/20250603_092724.jpg)
+
+![INSERT IMAGE OF INITIALISE ROBOT SCREEN 3](images/20250603_092733.jpg)
+   
+5. Press *START*. This will unlock the robot joints, enabling the user to move the robot. The robot will move if the *Teach* button is pressed on the pendant.
+
+![INSERT IMAGE OF PRESSING START](images/20250603_092736.jpg)
+
+![INSERT IMAGE OF INITIALISE ROBOT SCREEN 4](images/20250603_092741.jpg)
+
+6. Press *OK*.
+
+![INSERT IMAGE OF PRESSING OK](images/20250603_092744.jpg)
+
+7. Press *Run Program*.
+
+![INSERT IMAGE OF PRESSING Run Program](images/20250603_092750.jpg)
+
+8. Press *File* and then press *Load Program*.
+
+![INSERT IMAGE OF PRESSING FILE](images/20250603_142631.jpg)
+
+![INSERT IMAGE OF PRESSING Load Program](images/20250603_142636.jpg)
+
+9. Navigate to the file *iml_ur5_ros2.urp*. This program enables external control (control from outside of the teach pendant). In our case the external control is provided through ros drivers.
+Once selected press *Open*
+
+![INSERT IMAGE OF NAVIGATION 1](images/20250603_094758.jpg)
+![INSERT IMAGE OF NAVIGATION 2](images/20250603_094758.jpg)
+![INSERT IMAGE OF NAVIGATION 3](images/20250603_094803.jpg)
+![INSERT IMAGE OF NAVIGATION 4](images/20250603_094807.jpg)
+
+The robot is now setup. Once the ros_control is launched on the pc. You can press the *Play* button and the robot is ready to use with ROS.
+
+![INSERT IMAGE OF PROGRAM STATUS SCREEN](images/20250603_142603.jpg)
+
+10. On the UR5 PC, open a terminal and start the **current lab robot-control launch**:
+
+    ```bash
+    roslaunch cartesian_controllers_ur_robots robot.launch
+    ```
+
+    The ROS workspaces should already be sourced by `~/.bashrc`.
+
+11. On the teach pendant, press **▶ (Play)** to start the loaded external-control program.
+
+    > **Motion warning:** Before running external control or commanding any motion,
+    > confirm that the robot's workspace is clear and the relevant stop controls
+    > are accessible.
+
+    
+
+
+
+## Start the main ROS components
+
+Use **separate terminals** on the UR5 workstation for these processes. The
+current lab instructions identify the following three commands:
+
+### 1. Robot control
+
+```bash
+roslaunch cartesian_controllers_ur_robots robot.launch
+```
+
+This is the robot-control launch used in **step 10** above; do not start it a
+second time if it is already running.
+
+### 2. Gripper service
+
+```bash
+rosrun ur5_gripper_control gripper_service.py
+```
+
+The gripper must be **activated** before it will respond to open/close commands.
+Activation can be performed using the teach pendant or through the gripper
+service (see below).
+
+### 3. RealSense camera and point cloud
+
+```bash
+roslaunch realsense2_camera rs_camera.launch enable_pointcloud:=true
+```
+
+This brings up the RealSense camera with point-cloud output enabled, according
+to the lab's current startup instructions.
+
+> **Review note:** Verify whether the gripper and camera are required for each
+> activity. Do not assume every experiment needs all three processes.
+
+## Running task scripts
+
+Once the robot and any required services are running, additional scripts may
+be started from another terminal. For example:
+
+```bash
+rosrun ur5_auto_grasp move_to_home_motion.py
+```
+
+This is a **motion command**, not a routine startup prerequisite. Check the
+physical robot's position and surroundings before executing it. The lab
+workstation's `.bashrc` is configured to source the relevant ROS workspaces.
+
+Other scripts in `ur5_auto_grasp` may be used for specific experiments; add
+only verified examples here.
+
+## Moving the UR5 in RViz
+
+The lab's RViz interface provides an **interactive marker**. Moving the marker
+commands the physical UR5 to move toward the selected position.
+
+> **WARNING — REAL ROBOT MOTION**
+>
+> Moving the interactive marker can make the physical robot move. Keep people,
+> tools, and other objects out of its reachable space. Use small, deliberate
+> changes and observe the robot throughout the movement. Do not assume the
+> marker performs collision-free path planning.
+
+**Image placeholder:** Add a screenshot of the RViz interactive marker when
+reviewing the guide.
+
+<!-- Example once the image has been added:
+![RViz interactive marker used to move the UR5](images/rviz_interactive_marker.jpg)
+-->
+
+## Gripper service interface
+
+The gripper service takes a string command and returns a success flag and
+message. The service definition supplied by the lab is:
+
+```text
+std_msgs/String command
+---
+std_msgs/Bool success
+std_msgs/String message
+```
+
+The permitted commands described in the lab notes are:
+
+| Command | Description |
+| --- | --- |
+| `activate` | Activate/initialise the gripper before other commands. |
+| `open` | Open the gripper. |
+| `half` | Move the gripper to its defined halfway position. |
+| `close` | Close the gripper. |
+
+**Important:** The gripper will not operate until it has been activated,
+either through the teach pendant or through the service.
+
+**TODO — verify at the workstation:** Add the exact ROS service name and a
+confirmed `rosservice call` example. The supplied information specifies the
+service fields and allowed command values, but does **not** specify the
+service's advertised ROS name.
+
+## Historical June 2025 configuration
+
+An earlier version of the startup instructions used this UR5 driver command:
+
+```bash
+roslaunch ur_robot_driver ur5_bringup.launch robot_ip:=192.168.1.102
+```
+
+It is retained **for reference only**. The primary robot launch supplied in
+the newer lab notes is `roslaunch cartesian_controllers_ur_robots robot.launch`.
+Confirm the current workstation configuration before substituting the old
+command.
+
+## Checks to make during lab review
+
+- Verify that `cartesian_controllers_ur_robots robot.launch` works on the installed workstation and that it is the intended launch for the loaded external-control program.
+- Confirm that `iml_ur5_ros2.urp` is the correct teach-pendant program; its name contains `ros2`, while the documented commands use ROS 1 tools (`roslaunch` and `rosrun`).
+- Confirm that **Active Payload = 0** is appropriate for the robot's installed tool and current operating procedure.
+- Confirm whether the second navigation screenshot in step 9 should have a different filename; the original notes use `20250603_094758.jpg` twice.
+- Test the gripper activation/open/half/close commands and record the actual ROS service name.
+- Add a verified normal shutdown procedure and, if useful, screenshots for RViz and gripper activation.
